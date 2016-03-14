@@ -14,10 +14,14 @@ download.file(variable donde descarga http...en este caso variable, destfile="na
 ##xlsx
 ##libreary(xlsx) ##install and after that install rJava and xlsxjars
 ##doc <- read.xlsx("./data/gas.xlsx", sheetIndex = 1, rowIndex = rowIndex,colIndex = colIndex, header = TRUE)
+
 ##install package dplyr if you want to friendly: swirl() package trains on this. might need "LearnBayes" "stats" "base"
 ##install package "nycflights13"
 ##library(nycflights13)
 ##dim(flights)
+ ##Fit <- tbl_df(flights) ; Only shows what fits in screen, the rest as text
+ ##fit print "fit" to see how it looks
+ ##If use "flights" it shows everything vs. "fit" (tbl_df(flights))
 ##filter(flights, month == 1, day == 1)
 ##slice(flights, 1:10); 10 rows
 ##arrange(flights, year, month, day); arrange(flights, desc(arr_delay))
@@ -33,6 +37,9 @@ download.file(variable donde descarga http...en este caso variable, destfile="na
 ##                   count = n(),
 ##                   dist = mean(distance, na.rm = TRUE),
 ##                   delay = mean(arr_delay, na.rm = TRUE))
+                      ## count means count of rows.
+##quantile(delay$count, probs = 0.99) it will show # of rows within 99% of data. if want to know 1% check count>336.14 of 99%
+    ##top_counts <- filter(delay, count > "number from quantile")
 ##delay <- filter(delay, count > 20, dist < 2000)
 ##ggplot(delay, aes(dist, delay)) +
 ##  geom_point(aes(size = count), alpha = 1/2) +
