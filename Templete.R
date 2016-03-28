@@ -3,7 +3,6 @@
 
 ##Download:
 ##variable<-"https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06hid.csv"
-download.file(variable, destfile="name file + extension")
 ##Read file:
 
 ##jpg
@@ -13,6 +12,14 @@ download.file(variable, destfile="name file + extension")
 ## download.file(variable, dst2, mode = 'wb')
 ## data2 = readJPEG(dst2, native = TRUE)
 
+##zip
+##library(reshape2)
+##variable<-"https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+##dst2 = 'C:/Users/Chispita/Documents/Data Science/Getting and Cleaning Data/data2/getdata_dataset.zip'
+##download(variable, dst2, mode="wb") 
+##Go through "Open Windows explorer" double click the folder ziped to unzip it. set the working directory at the right place 
+##doc<- read.csv("file name + extension")
+
 ##xml:
 ##library(XML)
 ##doc <- xmlTreeParse("./data/restaurants.xml", useInternal = TRUE)
@@ -21,7 +28,15 @@ download.file(variable, destfile="name file + extension")
 ##CSV
 ##variable<-"https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv"
 ##dst2 = 'C:/Users/Chispita/Documents/Data Science/Getting and Cleaning Data/q3.csv' ##q3.csv is how will be saved
+##download.file(variable, dst2, mode = 'wb') ## Or just download.file(variable, dst2) ## certain Web applied method= "curl"
 ##doc<- read.csv("file name + extension")
+##Repair headers: when having certain comments before the header or columns skip spaces etc.
+## fread {data.table} similar as read.table but faster
+  ## if you have http source: gdp = fread(dst2, skip=5, nrows = 190, select = c(1, 2, 4, 5), col.names=c("CountryCode", "Rank", "Economy", "Total")) ##dst2 come from https source
+  ## if you have file as a source: gdp = fread("file name with extension", skip=5, nrows = 190, select = c(1, 2, 4, 5), col.names=c("CountryCode", "Rank", "Economy", "Total")) ## file name as source
+  ## See file in Text to see spaces and problems: skip the first 5 rows, show only column 1,2,4,5 and names them as "CountryCode", "Rank", "Economy", "Total"
+  ## head(gdp) to show new looking
+
 
 ##xlsx
 ##libreary(xlsx) ##install and after that install rJava and xlsxjars
@@ -70,6 +85,8 @@ str(mtcars)
 head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
 nrows(mtcars)
 ncol(mtcars)
+varNames <- names(mtcars) ##Shows names of the columns
+varNames[[2]] ## shows the name of 2nd column
 dim(mtcars) ## (rown,columns)
 str(mtcars) #metrics
 ## to add a new column with a calculation: mtcars$newColumn<-(mtcars$mpg+mtcars$hp)
@@ -88,6 +105,11 @@ str(mtcars) #metrics
 
 class(mtcars) ##type of class, normally data frame
 to_see_certain_columns<-mtcars[,c("mpg","hp")]
+to_see_certain_rows<-grep("^10", mtcars$mpg, value = TRUE) ## Shows cars with mpg that starts with "10"
+ ##grep("^.+(s)$", gdp$Economy, value = TRUE) ## to see rows that end with certain string of characters, eg."s" Package: grep {base} 
+ ##grep("Fiscal year end: June", merge$`Special Notes`) ## to see rows that contain certain string o characters in a column eg."Fiscal year end: June"   
+ ##z<-grep("Fiscal year end: June", merge$`Special Notes`)
+ ##sum(z) ## to count "TRUE" values from function grep("Fiscal year end: June", merge$`Special Notes`)
 sum(is.na(mtcars$hp)) ## counts how many "NA" are under column "hp"
 mtcars[mtcars$hp>170,] ##to see certain rows by filtering a column
 mtcars[mtcars$hp>170|mtcars$cyl>6,]  ## to see certain rows by filtering 2 columns "|" means "or", "&" means "and"
