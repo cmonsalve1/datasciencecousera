@@ -16,10 +16,11 @@
 ##library(reshape2)
 ##variable<-"https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 ##dst2 = 'C:/Users/Chispita/Documents/Data Science/Getting and Cleaning Data/data2/getdata_dataset.zip'
-##download(variable, dst2, mode="wb") 
-##Go through "Open Windows explorer" double click the folder ziped to unzip it. set the working directory at the right place 
-##doc<- read.csv("file name + extension")
-
+##download.file(variable, dst2, mode="wb") 
+##Go through "Open Windows explorer" Right click the folder ziped and "extract all" to unzip it. set the working directory at the right place 
+##doc<- read.table("file name + extension")
+ ## Or doc<-read.table("household_power_consumption.txt",header = TRUE, sep= ";") 
+ ## Or doc<- read.table("household_power_consumption.txt", header=T, sep=";", na.strings="?")
 ##xml:
 ##library(XML)
 ##doc <- xmlTreeParse("./data/restaurants.xml", useInternal = TRUE)
@@ -85,9 +86,12 @@ str(mtcars)
 head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
 nrows(mtcars)
 ncol(mtcars)
+names(mtcars) ## to see name of columns
 varNames <- names(mtcars) ##Shows names of the columns
 varNames[[2]] ## shows the name of 2nd column
 dim(mtcars) ## (rown,columns)
+table(mtcars$cyl) ##to see the categories and quantities under "cyl"
+lapply(mtcars, class) ## to see type of variables 
 str(mtcars) #metrics
 ## to add a new column with a calculation: mtcars$newColumn<-(mtcars$mpg+mtcars$hp)
 ## to merge data frames based on a column: merge(Dataframe1,dataframe2,by.x="columnName1",by.y="columnName2")
@@ -133,6 +137,49 @@ median(mtcars$mpg)
 max(mtcars$mpg)
 min(mtcars$mpg)
 sd(mtcars$mpg)
+range(mtcars$mpg)
+
+##Simple chart
+par(mfrow=c(1,2),mar=c(4,4,2,1),oma = c(0, 0, 2, 0)) ##Creates 2 charts per view side by side
+with(mtcars, plot(mpg, hp))
+text(mean(mtcars$mpg),max(mtcars$hp),"Performance") ## mean(mtcars$mpg),max(mtcars$hp) determine the coordinates to position label "Performance"
+abline(h=200,lwd=2,lty=2) ##horizontal line
+title(main="Performance")
+bigcyl<-subset(mtcars,cyl==8)
+points(bigcyl$mpg,bigcyl$hp,col="blue",pch=17)
+notbigcyl <- subset(mtcars, cyl!=8) ## diff from 8 cyl
+points(notbigcyl$mpg,notbigcyl$hp,col="red",pch=8)
+legend("topright",pch=c(17,8),col=c("blue","red"),legend=c("8 cyl","Other cyl"))
+abline(v=median(mtcars$mpg),lty=2,lwd=2)
+##if using multiple charts under same view, here is the main title:
+mtext("Ozone and Weather in New York City", outer = TRUE)
+  
+##Other chart
+par(mfrow=c(1,1),mar=c(4,4,2,1),oma = c(0, 0, 2, 0)) ##Creates 1 charts per view side by side (to correct in case you had 2 side by side)
+boxplot(mpg~cyl, mtcars,xlab = "Cylinder",ylab = "mpg", col.axis = "blue", col.lab = "red")
+title(main="Performance")
+
+##Other system for Charts: GGPLOT2
+qplot(mpg, disp, data = mtcars) ##to see relationsship between two variables 
+qplot(mpg, disp, data = mtcars, color=cyl) ## To see relationship between two variables and color by a 3rd variable: cyl 
+qplot(mpg, disp, data = mtcars, color=cyl,geom=c("point","smooth")) ## geoms are the type of shape for dots in charts, and grey area is the 95% confidence level
+(ggplot(mtcars, aes(disp, mpg)))+ geom_point(aes(colour = factor(cyl)))
+(qplot(disp, mpg, data = mtcars, facets = . ~ cyl))+geom_point(aes(size = 3))
+Kind of Scatter Plot:
+## Or assign gplot to a variable "g": g<-qplot(disp, mpg, data = mtcars, facets = . ~ cyl)
+## Thus, it's easier: q +  geom_point(aes(size = 3)
+## Or function ggplot:
+## g<-ggplot(mtcars,aes(disp,mpg))
+## g+geom_point()+geom_smooth(method="lm") + facet_grid(.~cyl) ##facets = Panels
+## everything in 1 chart:
+## g + geom_point(aes(color = factor(cyl)),size = 4, alpha = 1/2)+geom_smooth(method="lm") + labs(title="Test!") + labs(x="Displacement", y="Mileage")
+## everything in panels:
+## g + geom_point(aes(color = factor(cyl)),size = 4, alpha = 1/2)+geom_smooth(method="lm") + labs(title="Test!") + labs(x="Displacement", y="Mileage")+facet_grid(.~cyl)  
+## everything in panels, two variables as a function of two other variables:
+## g+geom_point()+facet_grid(gear~cyl,margins=TRUE)+geom_smooth(method="lm",se=FALSE,size =1, color="black")+labs(x="Displacement",y="Mileage",title="Test")  
+##Kind of histogram:
+qplot(mpg,data=mtcars,facets =cyl~.,binwidth=2)
+
 mtcars[order(mtcars$mpg),] ## ascending, if "-" mtcars$mpg descending
 mtcars[order(mtcars$mpg,-mtcars$hp),] ## multiple columns ordered
 stat<-split(mtcars,mtcars$cyl) ## to see an element as a function of other (dataset, cyl)
@@ -154,3 +201,4 @@ str(stat) ## new metrics based on "split" (cyl) over all the other variables
 plot(x=mtcars$mpg, y=mtcars$hp)
 mtcars[,2]<-as.numeric(mtcars[,2]) ## column 2
 hist(mtcars[,2]) ##histogram stat all rown, column 2
+}
