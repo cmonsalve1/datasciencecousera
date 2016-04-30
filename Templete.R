@@ -121,6 +121,63 @@ mtcars[mtcars$hp>170|mtcars$cyl>6,]  ## to see certain rows by filtering 2 colum
 table(mtcars$hp,mtcars$cyl) ## show two dimential table, row = hp, vs. col = cyl
 table(mtcars$cyl %in% c(6)) ## shows number cars with 6 cylinders
 stat2<-subset(mtcars,hp<170)
+
+subset(mtcars, cyl== 8, select = c(hp, wt)) ## another subset
+dist(subset(mtcars, cyl== 8, select = c(hp, wt))) ##calc dist between all points
+distance<-dist(subset(mtcars, cyl== 8, select = c(hp, wt)))
+subset<-subset(mtcars, cyl== 8, select = c(hp, wt))
+cluster<-hcluster(distance)
+cluster ##enter cluster and press enter. it displays info
+plot(cluster)
+## to create a heatmap
+Distance_adjusted<-as.matrix(distance) ## to make "distance" a matrix
+heatmap(Distance_adjusted)
+##Measure distance
+cx<-c(170,200,300) ##eyeball centroids based on chart, create a vector
+cy<-c(3.7,5.2,3.6) ##eyeball centroids based on chart, create a vector
+cbind(cx,cy) ## create a matrix with vectors
+points(cx,cy,col=c("red","orange","purple"),pch=3,cex=2,lwd=2) ##Plot centroids (3)
+subset<-subset(mtcars, cyl== 8, select = c(hp, wt))
+x<-subset$hp ## create coordinate "x" from subset
+y<=subset$wt ## create coordinate "y" from subset
+## Create a function that cal distance between centroids and points from columns (points):
+mdist<-function(x,y,cx,cy){
+  distTmp <- matrix(NA,nrow=3,ncol=14) ##14 are the titles or categories under mtcars, cyl== 8, select = c(hp, wt), or 14 different cars 
+  distTmp[1,] <- (x-cx[1])^2 + (y-cy[1])^2
+  distTmp[2,] <- (x-cx[2])^2 + (y-cy[2])^2
+  distTmp[3,] <- (x-cx[3])^2 + (y-cy[3])^2  
+  return(distTmp)
+}
+mdist(x,y,cx,cy) ## shows distances
+calc<-mdist(x,y,cx,cy)
+apply(calc,2,which.min) ## Shows the points (14) where they belong per centroid (1,2,3)
+newClust<-apply(calc,2,which.min)
+cols1<- c("red","orange","purple")
+points(x,y,pch=19,cex=2,col=cols1[newClust])
+## "A"
+tapply(x,newClust,mean) ##Calc mean with the new arrangement for "x", which is the new cx
+tapply(y,newClust,mean) ##Calc mean with the new arrangement for "y", which is the new cy
+## that will give us the new coordinates "cx" and "cy" for the new centroid
+newCx<-tapply(x,newClust,mean)
+newCy<-tapply(y,newClust,mean)
+cbind(newCx,newCy)
+points(newCx,newCy,col=cols1,pch=8,cex=2,lwd=2 ## new centraids added to the plot
+mdist(x,y,newCx,newCy) ##shows distances to the new centroids
+calc2<-mdist(x,y,newCx,newCy)
+apply(calc2,2,which.m"in) ## Shows the points (14) where they belong per centroid (1,2,3) - the new centroid
+newClust2<-apply(calc2,2,which.min)
+points(x,y,pch=19,cex=2,col=cols1[newClust2]) ## replotting in case points change colors (new cluster) based on new centroids
+##if points don't change colors based on new centroids, then this is the end, otherwise we need to repeat from "A" to "B" until points don't change
+## "B"
+
+## short method instead of "A" to "B":
+kmeans(subset,centers=3) ## Subset is the data. Take the centroid from the output
+## create cx and cy from the output:
+cx<-c(263.8000,187.1429,150)
+cy<-c(3.899000,4.219857,3.477500)
+cbind(cx,cy)
+points(cx,cy,col=c("red","orange","purple"),pch=3,cex=2,lwd=2)
+
 ## Dplyr package. rename(mtcars, hp=HorsePower) ## it will change he name of the column
 ## Dplyr package. deter<-mutate(mtcars,  efficiency= factor(1*(hp>170),  labels=c("Weak","Powerful"  ) 
         ##effective<-group_by(deter,efficiency )
@@ -143,7 +200,7 @@ range(mtcars$mpg)
 par(mfrow=c(1,2),mar=c(4,4,2,1),oma = c(0, 0, 2, 0)) ##Creates 2 charts per view side by side
 with(mtcars, plot(mpg, hp))
 text(mean(mtcars$mpg),max(mtcars$hp),"Performance") ## mean(mtcars$mpg),max(mtcars$hp) determine the coordinates to position label "Performance"
-abline(h=200,lwd=2,lty=2) ##horizontal line
+abline(h=200,lwd=2,lty=2,col="blue") ##horizontal line
 title(main="Performance")
 bigcyl<-subset(mtcars,cyl==8)
 points(bigcyl$mpg,bigcyl$hp,col="blue",pch=17)
@@ -177,6 +234,7 @@ Kind of Scatter Plot:
 ## g + geom_point(aes(color = factor(cyl)),size = 4, alpha = 1/2)+geom_smooth(method="lm") + labs(title="Test!") + labs(x="Displacement", y="Mileage")+facet_grid(.~cyl)  
 ## everything in panels, two variables as a function of two other variables:
 ## g+geom_point()+facet_grid(gear~cyl,margins=TRUE)+geom_smooth(method="lm",se=FALSE,size =1, color="black")+labs(x="Displacement",y="Mileage",title="Test")  
+## qplot(disp,mpg,data=mtcars, color=cyl, facets=.~cyl) + geom_smooth(method="lm")
 ##Kind of histogram:
 qplot(mpg,data=mtcars,facets =cyl~.,binwidth=2)
 
