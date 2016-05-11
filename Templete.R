@@ -1,3 +1,17 @@
+| You can exit swirl and return to the R prompt (>) at any time by pressing the Esc
+| key. If you are already at the prompt, type bye() to exit and save your progress.
+| When you exit properly, you'll see a short message letting you know you've done so.
+
+| When you are at the R prompt (>):
+  | -- Typing skip() allows you to skip the current question.
+| -- Typing play() lets you experiment with R on your own; swirl will ignore what you
+| do...
+| -- UNTIL you type nxt() which will regain swirl's attention.
+| -- Typing bye() causes swirl to exit. Your progress will be saved.
+| -- Typing main() returns you to swirl's main menu.
+| -- Typing info() displays these options again.
+
+
 ##getwd()
 ##dir()
 
@@ -87,12 +101,20 @@ head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
 nrows(mtcars)
 ncol(mtcars)
 names(mtcars) ## to see name of columns
+names(mtcars)[2:3] ## to see from columns 2 to 3 
 varNames <- names(mtcars) ##Shows names of the columns
 varNames[[2]] ## shows the name of 2nd column
 dim(mtcars) ## (rown,columns)
 table(mtcars$cyl) ##to see the categories and quantities under "cyl"
 lapply(mtcars, class) ## to see type of variables 
 str(mtcars) #metrics
+str(mtcars$hp) ##metrics per column
+summary(mtcars$disp) ##metrics per column, e.g. "disp"
+mean(is.na(mtcars$disp))## to see the percentage of empty values in a column
+## $d is the diagonal, and the 1st values represents the column's highst dominance
+
+##How to simplify data when too many rows?
+svd(mtcars)
 ## to add a new column with a calculation: mtcars$newColumn<-(mtcars$mpg+mtcars$hp)
 ## to merge data frames based on a column: merge(Dataframe1,dataframe2,by.x="columnName1",by.y="columnName2")
 ##Example merge data:
@@ -122,17 +144,18 @@ table(mtcars$hp,mtcars$cyl) ## show two dimential table, row = hp, vs. col = cyl
 table(mtcars$cyl %in% c(6)) ## shows number cars with 6 cylinders
 stat2<-subset(mtcars,hp<170)
 
+##Clustering data
 subset(mtcars, cyl== 8, select = c(hp, wt)) ## another subset
 dist(subset(mtcars, cyl== 8, select = c(hp, wt))) ##calc dist between all points
 distance<-dist(subset(mtcars, cyl== 8, select = c(hp, wt)))
 subset<-subset(mtcars, cyl== 8, select = c(hp, wt))
-cluster<-hcluster(distance)
+cluster<-hclust(distance)
 cluster ##enter cluster and press enter. it displays info
 plot(cluster)
 ## to create a heatmap
 Distance_adjusted<-as.matrix(distance) ## to make "distance" a matrix
 heatmap(Distance_adjusted)
-##Measure distance
+##Clustering - Measure distance for data in relation to centroids
 cx<-c(170,200,300) ##eyeball centroids based on chart, create a vector
 cy<-c(3.7,5.2,3.6) ##eyeball centroids based on chart, create a vector
 cbind(cx,cy) ## create a matrix with vectors
@@ -178,7 +201,13 @@ cy<-c(3.899000,4.219857,3.477500)
 cbind(cx,cy)
 points(cx,cy,col=c("red","orange","purple"),pch=3,cex=2,lwd=2)
 
-## Dplyr package. rename(mtcars, hp=HorsePower) ## it will change he name of the column
+##To use Singular Value Decomposition of a Matrix to simplify data
+svd(mtcars) especially used when having multiple columns with correlated variables
+svd(scale(mtcars))
+Function svd, $d = diagonal, it shows all the columns in order of dominance
+
+
+## Dplyr package. rename(mtcars, hp=HorsePower) ## it will change the name of the column
 ## Dplyr package. deter<-mutate(mtcars,  efficiency= factor(1*(hp>170),  labels=c("Weak","Powerful"  ) 
         ##effective<-group_by(deter,efficiency )
         ##effective
@@ -190,6 +219,7 @@ dim(stat2) ## shows total rows and columns, but rows are interesting to new how 
 ##if you want to simplify then >attach(mtcars), that allows you write "mpg instead of mtcars$mpg
 mean(mtcars$mpg[mtcars$cyl==8],na.rm=TRUE) ##eliminates NA's
 mean(mtcars$mpg)
+mean(mtcars$mpg>22) ##to calculate the mean after filtering values
 median(mtcars$mpg)
 max(mtcars$mpg)
 min(mtcars$mpg)
@@ -215,6 +245,9 @@ mtext("Ozone and Weather in New York City", outer = TRUE)
 par(mfrow=c(1,1),mar=c(4,4,2,1),oma = c(0, 0, 2, 0)) ##Creates 1 charts per view side by side (to correct in case you had 2 side by side)
 boxplot(mpg~cyl, mtcars,xlab = "Cylinder",ylab = "mpg", col.axis = "blue", col.lab = "red")
 title(main="Performance")
+##Other chart
+boxplot(mtcars$disp,mtcars$hp)
+boxplot(log10(mtcars$disp),log10(mtcars$hp)) ##to zoom in when having too many points and the boxplot looks to small, use Log10 to amplify  
 
 ##Other system for Charts: GGPLOT2
 qplot(mpg, disp, data = mtcars) ##to see relationsship between two variables 
@@ -224,7 +257,7 @@ qplot(mpg, disp, data = mtcars, color=cyl,geom=c("point","smooth")) ## geoms are
 (qplot(disp, mpg, data = mtcars, facets = . ~ cyl))+geom_point(aes(size = 3))
 Kind of Scatter Plot:
 ## Or assign gplot to a variable "g": g<-qplot(disp, mpg, data = mtcars, facets = . ~ cyl)
-## Thus, it's easier: q +  geom_point(aes(size = 3)
+## Thus, it's easier: g +  geom_point(aes(size = 3)
 ## Or function ggplot:
 ## g<-ggplot(mtcars,aes(disp,mpg))
 ## g+geom_point()+geom_smooth(method="lm") + facet_grid(.~cyl) ##facets = Panels
@@ -252,6 +285,7 @@ table(merge$RankGroups, merge$`Income Group`)
 print(stat) ##new look of data as a function of "cyl" after split
 
 sapply( stat, function(x) mean(x$mpg) ) ## calculates the mean on column "mpg" based on "split" (cyl)
+barplot(sapply( stat, function(x) sum(x$disp) )) ## plot of total disp by cyl
 lapply(stat,function(x) colMeans(x[,c("mpg","disp","hp")])) ##calculates the mean on each column of vecto "c" based on "split" (cyl)
 tapply(mtcars$hp, mtcars$cyl, mean) ## it will show average hp per group of cylinder
 
