@@ -1,3 +1,6 @@
+The downloaded binary packages are in
+C:\Users\Chispita\AppData\Local\Temp\Rtmp8oT6T4\downloaded_packages
+
 | You can exit swirl and return to the R prompt (>) at any time by pressing the Esc
 | key. If you are already at the prompt, type bye() to exit and save your progress.
 | When you exit properly, you'll see a short message letting you know you've done so.
@@ -45,7 +48,7 @@
 ##dst2 = 'C:/Users/Chispita/Documents/Data Science/Getting and Cleaning Data/q3.csv' ##q3.csv is how will be saved
 ##download.file(variable, dst2, mode = 'wb') ## Or just download.file(variable, dst2) ## certain Web applied method= "curl"
 ##doc<- read.csv("file name + extension")
-##Repair headers: when having certain comments before the header or columns skip spaces etc.
+##Repair headers: when having certain comments before the header or columns skip spaces etc:
 ## fread {data.table} similar as read.table but faster
   ## if you have http source: gdp = fread(dst2, skip=5, nrows = 190, select = c(1, 2, 4, 5), col.names=c("CountryCode", "Rank", "Economy", "Total")) ##dst2 come from https source
   ## if you have file as a source: gdp = fread("file name with extension", skip=5, nrows = 190, select = c(1, 2, 4, 5), col.names=c("CountryCode", "Rank", "Economy", "Total")) ## file name as source
@@ -98,6 +101,7 @@ data(mtcars)
 summary(mtcars)
 str(mtcars)
 head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
+tail(mtcars)
 nrows(mtcars)
 ncol(mtcars)
 names(mtcars) ## to see name of columns
@@ -253,9 +257,20 @@ boxplot(log10(mtcars$disp),log10(mtcars$hp)) ##to zoom in when having too many p
 qplot(mpg, disp, data = mtcars) ##to see relationsship between two variables 
 qplot(mpg, disp, data = mtcars, color=cyl) ## To see relationship between two variables and color by a 3rd variable: cyl 
 qplot(mpg, disp, data = mtcars, color=cyl,geom=c("point","smooth")) ## geoms are the type of shape for dots in charts, and grey area is the 95% confidence level
+##see the difference when making the variables factor:
+mtcars$mpg <- as.factor(mtcars$mpg)
+mtcars$disp <- as.factor(mtcars$disp)
+mtcars$cyl <- as.factor(mtcars$cyl)
+qplot(mpg, disp, data = mtcars) ##to see relationsship between two variables 
+qplot(mpg, disp, data = mtcars, color=cyl) ## To see relationship between two variables and color by a 3rd variable: cyl 
+qplot(mpg, disp, data = mtcars, color=cyl,geom=c("point","smooth")) ## geoms are the type of shape for dots in charts, and grey area is the 95% confidence level
+
 (ggplot(mtcars, aes(disp, mpg)))+ geom_point(aes(colour = factor(cyl)))
 (qplot(disp, mpg, data = mtcars, facets = . ~ cyl))+geom_point(aes(size = 3))
-Kind of Scatter Plot:
+##Line chart
+ggplot(data=mtcars, aes(x=disp, y=mpg))+geom_line()
+
+##Kind of Scatter Plot:
 ## Or assign gplot to a variable "g": g<-qplot(disp, mpg, data = mtcars, facets = . ~ cyl)
 ## Thus, it's easier: g +  geom_point(aes(size = 3)
 ## Or function ggplot:
@@ -278,6 +293,17 @@ stat2<-split(mtcars$hp,mtcars$cyl)
 ## if you want to see total "hp" by cyl: lapply(stat,sum)
 ## if you want to see total count (cars) by cyl: lapply(stat,nrow)
 ## if you want to convert list to data frame: as.data.frame(lapply(stat,nrows))
+
+## Split by date:
+doc$date <- as.Date(doc$date,format = "%m/%d/%Y")
+stat<-split(doc,doc$date)
+sapply( stat, function(x) sum(x$steps) )
+
+## How to replace NA's with mean: (3 represents NA's under column 3, doc2 equals doc2<-read.csv("activity2.csv"))
+doc$date <- as.Date(doc$date,format = "%m/%d/%Y")
+for(i in 3:ncol(doc2)){
+  doc2[is.na(doc2[,i]), i] <- mean(doc2[,i], na.rm = TRUE)
+}
 
 ##To cut rows in intervals (histograms), library(Hmisc)
 merge$RankGroups <- cut2(merge$Rank, g=5) ## cut in 5 intervals 
