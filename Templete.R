@@ -60,12 +60,16 @@ C:\Users\Chispita\AppData\Local\Temp\Rtmp8oT6T4\downloaded_packages
 ##libreary(xlsx) ##install and after that install rJava and xlsxjars
 ##doc <- read.xlsx("./data/gas.xlsx", sheetIndex = 1, rowIndex = rowIndex,colIndex = colIndex, header = TRUE)
 
+##BZ2
+##doc <- read.csv(bzfile("data/repdata-data-StormData.csv.bz2"))
+
+
 ##install package dplyr if you want to friendly: swirl() package trains on this. might need "LearnBayes" "stats" "base"
 ##install package tidyr to to fix messy data to tidy: e.g gather(students, sex, count, -grade) and separate(res,sex_class,c("sex", "class"))  
 ##install package "nycflights13"
 ##library(nycflights13)
 ##dim(flights)
- ##Fit <- tbl_df(flights) ; Only shows what fits in screen, the rest as text
+ ##Fit <- tbl_df(flights) ; Only shows what fits on screen, the rest as text
  ##fit print "fit" to see how it looks
  ##If use "flights" it shows everything vs. "fit" (tbl_df(flights))
 ##filter(flights, month == 1, day == 1)
@@ -191,7 +195,7 @@ cbind(newCx,newCy)
 points(newCx,newCy,col=cols1,pch=8,cex=2,lwd=2 ## new centraids added to the plot
 mdist(x,y,newCx,newCy) ##shows distances to the new centroids
 calc2<-mdist(x,y,newCx,newCy)
-apply(calc2,2,which.m"in) ## Shows the points (14) where they belong per centroid (1,2,3) - the new centroid
+apply(calc2,2,which.min) ## Shows the points (14) where they belong per centroid (1,2,3) - the new centroid
 newClust2<-apply(calc2,2,which.min)
 points(x,y,pch=19,cex=2,col=cols1[newClust2]) ## replotting in case points change colors (new cluster) based on new centroids
 ##if points don't change colors based on new centroids, then this is the end, otherwise we need to repeat from "A" to "B" until points don't change
@@ -270,6 +274,15 @@ qplot(mpg, disp, data = mtcars, color=cyl,geom=c("point","smooth")) ## geoms are
 ##Line chart
 ggplot(data=mtcars, aes(x=disp, y=mpg))+geom_line()
 
+##Bar chart
+ggplot(data=mtcars,
+       aes(x=reorder(cyl, mpg), y=cyl, fill=mpg)) +
+  geom_bar(stat="identity") +
+  coord_flip() + 
+  xlab("Type") +
+  ylab("mpg") +
+  theme(legend.position="none")
+
 ##Kind of Scatter Plot:
 ## Or assign gplot to a variable "g": g<-qplot(disp, mpg, data = mtcars, facets = . ~ cyl)
 ## Thus, it's easier: g +  geom_point(aes(size = 3)
@@ -293,7 +306,8 @@ stat2<-split(mtcars$hp,mtcars$cyl)
 ## if you want to see total "hp" by cyl: lapply(stat,sum)
 ## if you want to see total count (cars) by cyl: lapply(stat,nrow)
 ## if you want to convert list to data frame: as.data.frame(lapply(stat,nrows))
-
+countcars<-aggregate(. ~ cyl, data=mtcars, FUN=lengh) ##FUN = lengh, function counts cars per cyl. FUN=sum, sums values
+countcars <- count(mtcars, c('cyl')) ## (plyr package) counts total cars without taking into account type of cyl
 ## Split by date:
 doc$date <- as.Date(doc$date,format = "%m/%d/%Y")
 stat<-split(doc,doc$date)
@@ -309,8 +323,8 @@ for(i in 3:ncol(doc2)){
 merge$RankGroups <- cut2(merge$Rank, g=5) ## cut in 5 intervals 
 table(merge$RankGroups, merge$`Income Group`)
 print(stat) ##new look of data as a function of "cyl" after split
-
-sapply( stat, function(x) mean(x$mpg) ) ## calculates the mean on column "mpg" based on "split" (cyl)
+##barplot
+sapply(stat, function(x) mean(x$mpg) ) ## calculates the mean on column "mpg" based on "split" (cyl)
 barplot(sapply( stat, function(x) sum(x$disp) )) ## plot of total disp by cyl
 lapply(stat,function(x) colMeans(x[,c("mpg","disp","hp")])) ##calculates the mean on each column of vecto "c" based on "split" (cyl)
 tapply(mtcars$hp, mtcars$cyl, mean) ## it will show average hp per group of cylinder
@@ -320,3 +334,51 @@ plot(x=mtcars$mpg, y=mtcars$hp)
 mtcars[,2]<-as.numeric(mtcars[,2]) ## column 2
 hist(mtcars[,2]) ##histogram stat all rown, column 2
 }
+##Probability
+#Question 2
+#Suppose that diastolic blood pressures (DBPs) for men aged 35-44 are normally distributed with a mean of 80 (mm Hg) and a standard deviation of 10. About what is the probability that a random 35-44 year old has a DBP less than 70?
+pnorm(targetDBP, mean = ??, sd = ??)
+
+#Question 3
+#Brain volume for adult women is normally distributed with a mean of about 1,100 cc for women with a standard deviation of 75 cc. What brain volume represents the 95th percentile?
+qnorm(quantile, mean = ??, sd = ??)
+
+#Question 4
+#Refer to the previous question. Brain volume for adult women is about 1,100 cc for women with a standard deviation of 75 cc. Consider the sample mean of 100 random adult women from this population. What is the 95th percentile of the distribution of that sample mean?
+SE <- ??/sqrt(n)
+qnorm(quantile, mean = ??, sd = SE)
+
+#Question 5
+#You flip a fair coin 5 times, about what's the probability of getting 4 or 5 heads?
+p <- 0.5
+n <- 5
+quantile <- 3 # 4 or 5 out of 5, with lower
+pbinom(quantile, size=n, prob=p, lower.tail = FALSE)
+
+#Question 6
+#The respiratory disturbance index (RDI), a measure of sleep disturbance, for a specific population has a mean of 15 (sleep events per hour) and a standard deviation of 10. They are not normally distributed. Give your best estimate of the probability that a sample mean RDI of 100 people is between 14 and 16 events per hour?
+?? <- 15
+?? <- 10
+n <- 100
+SE <- ??/sqrt(n)
+left <- 14
+right <- 16
+percentageLeft <- pnorm(left, mean = ??, sd = SE) * 100
+percentageRight <- pnorm(right, mean = ??, sd = SE) * 100
+percentageRight - percentageLeft
+
+#Question 7
+#Consider a standard uniform density. The mean for this density is .5 and the variance is 1 / 12. You sample 1,000 observations from this distribution and take the sample mean, what value would you expect it to be near?
+quantile <- 0.5
+?? <- 0.5
+?? <- 1/12
+n <- 1000
+SE <- ??/sqrt(n)
+qnorm(quantile, mean = ??, sd = SE)
+
+#Question 8
+#The number of people showing up at a bus stop is assumed to be Poisson with a mean of 5 people per hour. You watch the bus stop for 3 hours. About what's the probability of viewing 10 or fewer people?
+t <- 3
+?? <- 5
+quantile <- 10
+ppois(quantile, lambda = t * ??)
