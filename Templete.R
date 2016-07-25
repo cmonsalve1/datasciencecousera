@@ -109,19 +109,25 @@ tail(mtcars)
 nrows(mtcars)
 ncol(mtcars)
 cor(mtcars$disp,mtcars$qsec) ##correlation between variables
-#/linear model with single variable
+
+#linear model with single variable
 lm(mpg ~ wt, data=mtcars) # lm(outcome~predictor, dataset) from the datasets package and fit the regression model with mpg as the outcome and weight as the predictor. Give the slope coefficient
 summary(lm(mpg ~ wt, data=mtcars))
 #The intercept is the expected mean value of Y when all X=0, which means when the reidual has mean = zero
+
 #Predict:
 fit<-lm(mpg ~ wt, data=mtcars)
 newdata <- data.frame(wt=mean(mtcars$wt))
-predict(lm(mpg ~ wt, data=mtcars), newdata, interval=("confidence")) #predicts lower and upper value at 95% confidence interval
+# Use "confidence" intervals to tell you about how well you have determined the mean
+predict(lm(mpg ~ wt, data=mtcars), newdata, interval="confidence") #predicts lower and upper value at 95% confidence interval
+# Use "prediction" interval to tell you where you can expect to see the next data point sampled
+predict(lm(mpg ~ wt, data=mtcars), newdata, interval="prediction") #predicts lower and upper value at 95% prediction interval
+
 #Linear model with multiple-variables
 lm(formula = mpg ~ ., data = mtcars)
 summary(lm(formula = mpg ~ ., data = mtcars))
-#based on summary: for every 1% increase in "cyl, we expect a .111144 decrease in mpg, holding all other variables constant
-#based on summary: for every 1% increase in "cyl, we expect a .01334 decrease in mpg, holding all other variables constant
+#based on summary: for every 1% increase in "cyl", we expect a .111144 decrease in mpg, holding all other variables constant
+#based on summary: for every 1% increase in "disp", we expect a .01334 decrease in mpg, holding all other variables constant
 #Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1. The last column show this. In this case, all show "" except one with ".", which means at 0.1 alpha level is the t-test of "wt" significant
 #if we do only:summary(lm(mpg ~ wt, data=mtcars)), the coefficient for "wt" = -5.3445. Thus, decreases more than having all the variables (-3.71) 
 #Hipothesis Testing. To see the new mean is equal to the one from the population
