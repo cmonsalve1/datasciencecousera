@@ -108,6 +108,29 @@ head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
 tail(mtcars)
 nrows(mtcars)
 ncol(mtcars)
+cor(mtcars$disp,mtcars$qsec) ##correlation between variables
+#/linear model with single variable
+lm(mpg ~ wt, data=mtcars) # lm(outcome~predictor, dataset) from the datasets package and fit the regression model with mpg as the outcome and weight as the predictor. Give the slope coefficient
+summary(lm(mpg ~ wt, data=mtcars))
+#The intercept is the expected mean value of Y when all X=0, which means when the reidual has mean = zero
+#Predict:
+fit<-lm(mpg ~ wt, data=mtcars)
+newdata <- data.frame(wt=mean(mtcars$wt))
+predict(lm(mpg ~ wt, data=mtcars), newdata, interval=("confidence")) #predicts lower and upper value at 95% confidence interval
+#Linear model with multiple-variables
+lm(formula = mpg ~ ., data = mtcars)
+summary(lm(formula = mpg ~ ., data = mtcars))
+#based on summary: for every 1% increase in "cyl, we expect a .111144 decrease in mpg, holding all other variables constant
+#based on summary: for every 1% increase in "cyl, we expect a .01334 decrease in mpg, holding all other variables constant
+#Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1. The last column show this. In this case, all show "" except one with ".", which means at 0.1 alpha level is the t-test of "wt" significant
+#if we do only:summary(lm(mpg ~ wt, data=mtcars)), the coefficient for "wt" = -5.3445. Thus, decreases more than having all the variables (-3.71) 
+#Hipothesis Testing. To see the new mean is equal to the one from the population
+t.test(mtcars$mpg, alternative="two.sided",mu=20 ,conf.level = 0.95)
+  #if p-value < alpha, typically 5% or 0.05 then reject Ho.Otherwise, you accept the two means are equivalent
+t.test(mtcars$mpg, alternative="less",mu=20 ,conf.level = 0.95) #evaluate if Ho<20, in this case accept because p-value>alpha
+t.test(mtcars$mpg, alternative="greater",mu=20 ,conf.level = 0.95) #evaluate if Ho>20, in this case accept because p-value>alpha
+sum(mtcars$cyl>4) ##Counts how many cars are > 4 cyl
+table(mtcars$cyl>4,mtcars$carb) ##Counts how many cars are > 4 cyl and number of cars by type of carb
 names(mtcars) ## to see name of columns
 names(mtcars)[2:3] ## to see from columns 2 to 3 
 varNames <- names(mtcars) ##Shows names of the columns
@@ -233,6 +256,113 @@ max(mtcars$mpg)
 min(mtcars$mpg)
 sd(mtcars$mpg)
 range(mtcars$mpg)
+rowMeans(mtcars[,2:3])
+quantile(mtcars$mpg, c(.025,.975)) ## alpha=5%
+
+##Statistics
+
+#Question 2
+#Suppose that diastolic blood pressures (DBPs) for men aged 35-44 are normally distributed with a mean of 80 (mm Hg) and a standard deviation of 10. About what is the probability that a random 35-44 year old has a DBP less than 70?
+pnorm(targetDBP, mean = ??, sd = ??)
+
+#Question 3
+#Brain volume for adult women is normally distributed with a mean of about 1,100 cc for women with a standard deviation of 75 cc. What brain volume represents the 95th percentile?
+qnorm(quantile, mean = ??, sd = ??)
+
+#Question 4
+#Refer to the previous question. Brain volume for adult women is about 1,100 cc for women with a standard deviation of 75 cc. Consider the sample mean of 100 random adult women from this population. What is the 95th percentile of the distribution of that sample mean?
+SE <- sd/sqrt(n)
+qnorm(quantile, mean = mean, sd = SE)
+
+#Question 5
+#You flip a fair coin 5 times, about what's the probability of getting 4 or 5 heads?
+p <- 0.5
+n <- 5
+quantile <- 3 # 4 or 5 out of 5, with lower
+pbinom(quantile, size=n, prob=p, lower.tail = FALSE)
+
+#Question 6
+#The respiratory disturbance index (RDI), a measure of sleep disturbance, for a specific population has a mean of 15 (sleep events per hour) and a standard deviation of 10. They are not normally distributed. Give your best estimate of the probability that a sample mean RDI of 100 people is between 14 and 16 events per hour?
+mean <- 15
+sd <- 10
+n <- 100
+SE <- sd/sqrt(n)
+left <- 14
+right <- 16
+percentageLeft <- pnorm(left, mean = mean, sd = SE) * 100
+percentageRight <- pnorm(right, mean = ??, sd = SE) * 100
+percentageRight - percentageLeft
+
+#Question 7
+#Consider a standard uniform density. The mean for this density is .5 and the variance is 1 / 12. You sample 1,000 observations from this distribution and take the sample mean, what value would you expect it to be near?
+quantile <- 0.5
+mean <- 0.5
+sd <- 1/12
+n <- 1000
+SE <- mean/sqrt(n)
+qnorm(quantile, mean = mean, sd = SE)
+
+#Question 8
+#The number of people showing up at a bus stop is assumed to be Poisson with a mean of 5 people per hour. You watch the bus stop for 3 hours. About what's the probability of viewing 10 or fewer people?
+t <- 3
+lambda <- 5
+quantile <- 10
+ppois(quantile, lambda = t * lambda)
+
+##p-value
+p-value = t.test(data$before, data$later, paired=T, var.equal=T, alt="two.sided")$p.value ## paired=same number of rows for the 2 columns. 2 sides of gauss curve
+
+##p-value
+# parent have 8 kids, 7 girls and 1 boy, 1 sided: Ha>6; 2 sided: Ha<=7
+#2 sided t-test = lower.tail=TRUE, la colita. de lo contrario es el area grande bajo curva gauss
+Ho<-7
+n=8
+prob<-0.5
+pbinom(Ho, size=n, prob=prob, lower.tail=T) ## H: 0.5 (prob),Ho>2
+#1 sided t-test
+Ho<-6
+n=8
+prob<-0.5
+pbinom(Ho, size=n, prob=prob, lower.tail=F)
+
+##p-value
+rate <- 1/100 ## benchmark, what's considered a reference
+errors <- 10
+days <- 1787
+poisson.test(errors, T = days, r = rate, alt="less")$p.value
+
+##p-value
+#1 sided t-test
+n_y <- 9 # subjects treated
+n_x <- 9 # subjects placebo
+??_y <- 1.5# kg/m2 std.dev. treated 
+??_x <- 1.8# kg/m2 std.dev. placebo 
+??_y <- -3#  kg/m2 average difference treated
+??_x <- 1#  kg/m2 average difference placebo
+??_p <- (((n_x - 1) * ??_x^2 + (n_y - 1) * ??_y^2)/(n_x + n_y - 2))
+pt((??_y - ??_x) / (??_p * (1 / n_x + 1 / n_y)^.5), df=n_y + n_x -2,lower.tail=F)
+#Two sided t-test
+n_y <- 9 # subjects treated
+n_x <- 9 # subjects placebo
+??_y <- 1.5# kg/m2 std.dev. treated 
+??_x <- 1.8# kg/m2 std.dev. placebo 
+??_y <- -3#  kg/m2 average difference treated
+??_x <- 1#  kg/m2 average difference placebo
+??_p <- (((n_x - 1) * ??_x^2 + (n_y - 1) * ??_y^2)/(n_x + n_y - 2))
+pt((??_y - ??_x) / (??_p * (1 / n_x + 1 / n_y)^.5), df=n_y + n_x -2,lower.tail=T)
+
+##Power.t.test
+#Researchers would like to conduct a study of 100 healthy adults to detect a four year mean brain volume loss of .01 mm3  
+#Assume that the standard deviation of four year volume loss in this population is .04 mm3  
+#About what would be the power of the study for a 5% one sided test versus a null hypothesis of no volume loss?
+power.t.test(n=100, delta=.01, sd=.04, alt="one.sided", type="one.sample", sig.level=.05)
+
+##Confidence Interval (alpha=5%)
+n <- 9
+mu <- 1100
+sd <- 30
+t <- qt(1-0.05/2, n-1)
+mu + c(-1, 1) * t * sd / sqrt(n)
 
 ##Simple chart
 par(mfrow=c(1,2),mar=c(4,4,2,1),oma = c(0, 0, 2, 0)) ##Creates 2 charts per view side by side
@@ -306,7 +436,7 @@ stat2<-split(mtcars$hp,mtcars$cyl)
 ## if you want to see total "hp" by cyl: lapply(stat,sum)
 ## if you want to see total count (cars) by cyl: lapply(stat,nrow)
 ## if you want to convert list to data frame: as.data.frame(lapply(stat,nrows))
-countcars<-aggregate(. ~ cyl, data=mtcars, FUN=lengh) ##FUN = lengh, function counts cars per cyl. FUN=sum, sums values
+countcars<-aggregate(. ~ cyl, data=mtcars, FUN=length) ##FUN = length, function counts cars per cyl. FUN=sum, sums values
 countcars <- count(mtcars, c('cyl')) ## (plyr package) counts total cars without taking into account type of cyl
 ## Split by date:
 doc$date <- as.Date(doc$date,format = "%m/%d/%Y")
@@ -326,6 +456,7 @@ print(stat) ##new look of data as a function of "cyl" after split
 ##barplot
 sapply(stat, function(x) mean(x$mpg) ) ## calculates the mean on column "mpg" based on "split" (cyl)
 barplot(sapply( stat, function(x) sum(x$disp) )) ## plot of total disp by cyl
+barplot((sapply( stat, function(x) sum(x$disp))),col="green",xlab="dose",ylab="length",main="Analysis")
 lapply(stat,function(x) colMeans(x[,c("mpg","disp","hp")])) ##calculates the mean on each column of vecto "c" based on "split" (cyl)
 tapply(mtcars$hp, mtcars$cyl, mean) ## it will show average hp per group of cylinder
 
@@ -334,51 +465,7 @@ plot(x=mtcars$mpg, y=mtcars$hp)
 mtcars[,2]<-as.numeric(mtcars[,2]) ## column 2
 hist(mtcars[,2]) ##histogram stat all rown, column 2
 }
-##Probability
-#Question 2
-#Suppose that diastolic blood pressures (DBPs) for men aged 35-44 are normally distributed with a mean of 80 (mm Hg) and a standard deviation of 10. About what is the probability that a random 35-44 year old has a DBP less than 70?
-pnorm(targetDBP, mean = ??, sd = ??)
 
-#Question 3
-#Brain volume for adult women is normally distributed with a mean of about 1,100 cc for women with a standard deviation of 75 cc. What brain volume represents the 95th percentile?
-qnorm(quantile, mean = ??, sd = ??)
-
-#Question 4
-#Refer to the previous question. Brain volume for adult women is about 1,100 cc for women with a standard deviation of 75 cc. Consider the sample mean of 100 random adult women from this population. What is the 95th percentile of the distribution of that sample mean?
-SE <- sd/sqrt(n)
-qnorm(quantile, mean = mean, sd = SE)
-
-#Question 5
-#You flip a fair coin 5 times, about what's the probability of getting 4 or 5 heads?
-p <- 0.5
-n <- 5
-quantile <- 3 # 4 or 5 out of 5, with lower
-pbinom(quantile, size=n, prob=p, lower.tail = FALSE)
-
-#Question 6
-#The respiratory disturbance index (RDI), a measure of sleep disturbance, for a specific population has a mean of 15 (sleep events per hour) and a standard deviation of 10. They are not normally distributed. Give your best estimate of the probability that a sample mean RDI of 100 people is between 14 and 16 events per hour?
-mean <- 15
-sd <- 10
-n <- 100
-SE <- sd/sqrt(n)
-left <- 14
-right <- 16
-percentageLeft <- pnorm(left, mean = mean, sd = SE) * 100
-percentageRight <- pnorm(right, mean = ??, sd = SE) * 100
-percentageRight - percentageLeft
-
-#Question 7
-#Consider a standard uniform density. The mean for this density is .5 and the variance is 1 / 12. You sample 1,000 observations from this distribution and take the sample mean, what value would you expect it to be near?
-quantile <- 0.5
-mean <- 0.5
-sd <- 1/12
-n <- 1000
-SE <- mean/sqrt(n)
-qnorm(quantile, mean = mean, sd = SE)
-
-#Question 8
-#The number of people showing up at a bus stop is assumed to be Poisson with a mean of 5 people per hour. You watch the bus stop for 3 hours. About what's the probability of viewing 10 or fewer people?
-t <- 3
-lambda <- 5
-quantile <- 10
-ppois(quantile, lambda = t * lambda)
+mns = NULL
+for (i in 1 : 1000) mns = c(mns, mean(runif(40)))
+hist(mns)
