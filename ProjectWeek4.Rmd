@@ -1,0 +1,124 @@
+---
+title: "ProjectWeek4"
+output: html_document
+---
+##Executive Summary: 
+#####Explore the relationship between a set of variables and miles per gallon (MPG) (outcome). The interest is to answer if an automatic or manual transmission is better for MPG, plus, quantify the MPG difference between automatic and manual.
+
+```{r}
+library(datasets)
+data(mtcars)
+```
+
+```{r}
+names(mtcars) ##Shows names of the columns
+dim(mtcars) ## (rown,columns)
+summary(mtcars$mpg)
+```
+##Exploratory data analysis
+
+#####Make "cyl" and "am" as factors:
+```{r}
+mtcars$cyl<-as.factor(mtcars$cyl)
+mtcars$am<- factor(mtcars$am,labels=c("Automatic","Manual"))
+```
+
+#####Observe how the mean looks per cylinder:
+```{r}
+par(mfrow=c(1,1),mar=c(4,4,2,1),oma = c(0, 0, 2, 0))
+boxplot(mpg~cyl, mtcars,xlab = "Cylinder",ylab = "mpg", col.axis = "blue", col.lab = "red")
+title(main="Performance")
+```
+
+#####Clustering data. The chart shows cars' performance based on number of cylinders. The first chart shows strong similarity among the cars with 4 cylinders while with 8 cylinders are two well defined groups
+```{r}
+subset(mtcars, cyl== 8, select = c(hp, wt)) ## another subset
+#dist(subset(mtcars, cyl== 8, select = c(hp, wt))) ##calc dist between all points
+Distance<-dist(subset(mtcars, cyl== 8, select = c(hp, wt)))
+subset<-subset(mtcars, cyl== 8, select = c(hp, wt))
+cluster<-hclust(Distance)
+
+
+subset(mtcars, cyl== 6, select = c(hp, wt)) ## another subset
+#dist(subset(mtcars, cyl== 6, select = c(hp, wt))) ##calc dist between all points
+Distance2<-dist(subset(mtcars, cyl== 6, select = c(hp, wt)))
+subset2<-subset(mtcars, cyl== 6, select = c(hp, wt))
+cluster2<-hclust(Distance2)
+
+
+subset(mtcars, cyl== 4, select = c(hp, wt)) ## another subset
+#dist(subset(mtcars, cyl== 4, select = c(hp, wt))) ##calc dist between all points
+Distance3<-dist(subset(mtcars, cyl== 4, select = c(hp, wt)))
+subset3<-subset(mtcars, cyl== 4, select = c(hp, wt))
+cluster3<-hclust(Distance3)
+
+
+par(mfrow=c(1, 3))
+plot(cluster)
+plot(cluster2)
+plot(cluster3)
+```
+
+##Regression analysis:
+#
+####Regression with single predictor (fit1)
+```{r}
+fit<-lm(mpg ~ am, data=mtcars) # regression model with "mpg" as the outcome and "am" as the predictor.
+summary(lm(mpg ~ am, data=mtcars))$coef 
+```
+
+#####The intercept is the expected mean value of Y when all X=0, which means when the residual has mean = zero
+#####If we concider only "am", it says that for every 1% increase in "amManual", we expect a 7.24 increase in mpg
+#
+####Regression with multiple-predictors (fit2)
+```{r}
+fit2<-lm(formula = mpg ~ ., data = mtcars)
+shapiro.test(fit2$residuals) 
+```
+
+#####It's convenient to check normality, If p-value>0.05 then fails to reject normality. That's the case here.
+
+```{r}
+summary(lm(formula = mpg ~ ., data = mtcars))
+```
+
+#####For every 1% increase in "cyl6", we expect a 1.66031 decrease in mpg, holding all other variables constant
+#####For every 1% increase in "amManual", we expect a 2.61726 increase in mpg, holding all other variables constant
+#
+####Regression with multiple-predictors (fit3)
+```{r}
+fit3<-lm(formula = mpg ~cyl+wt+am, data = mtcars)
+shapiro.test(fit3$residuals)
+```
+
+#####Residuals show normality
+```{r}
+summary(lm(formula = mpg ~cyl+wt+am, data = mtcars))
+```
+
+#####For every 1% increase in "cyl6", we expect a 4.2573 decrease in mpg, holding all other variables constant
+#####For every 1% increase in "amManual", we expect a 0.1501 increase in mpg, holding all other variables constant, which show less increase than considering all the other predictors.
+#
+####Let's evaluate the 3 Regression models
+```{r}
+anova(fit,fit2,fit3)
+```
+
+#####It shows high significance when using all the predictors versus only amManual or cyl+disp+hp+wt 
+#
+####Residuals
+```{r}
+par(mfrow=c(2, 2))
+plot(fit2)
+```
+
+#####Most of points fall on the line of Normal Q-Q plot indicating normality 
+#
+####Evaluate collinearity of the best fit (fit2), Variance Inflation Factors 
+```{r}
+library(car)
+vif(fit2)
+```
+
+#####These VIFs show, for each regression coefficient, the variance inflation due to including all the others. For instance, the variance in the estimated coefficient of cyl is 36.34 times what it might have been if cyl were not correlated with the other regressors. Since "cyl" and score on an "disp" are likely to be correlated, we might guess that most of the variance inflation for cyl is due to including disp.
+
