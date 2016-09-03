@@ -1,5 +1,5 @@
-The downloaded binary packages are in
-C:\Users\Chispita\AppData\Local\Temp\Rtmp8oT6T4\downloaded_packages
+  The downloaded binary packages are in
+  C:\Users\Chispita\AppData\Local\Temp\Rtmp8oT6T4\downloaded_packages
 
 | You can exit swirl and return to the R prompt (>) at any time by pressing the Esc
 | key. If you are already at the prompt, type bye() to exit and save your progress.
@@ -102,17 +102,39 @@ library(datasets)
 ## or data<-read.csv("data.csv"TRUE,",") true if you have header, and "," for comma delimited
 ## if you have a column with letters then: data<-read.csv("data.csv",TRUE,",")
 data(mtcars)
+set.seed(1000)
 summary(mtcars)
 str(mtcars)
 head(mtcars) ##if you want to see more than 6 rows: head(mtcars,10)
 tail(mtcars)
 nrows(mtcars)
 ncol(mtcars)
-cor(mtcars$disp,mtcars$qsec) ##correlation between variables
-
+apply(x=mtcars, 2, sort) #Sort 2nd column  
+class(mtcars$mpg)
+#Class:
+#"character"
+#"complex"
+#"double"
+#"expression"
+#"integer"
+#"factor"
+#"list" 
+#"logical"
+#"numeric"
+#To see the categories(subjects) per column:
+mtcars$carb <- as.factor(mtcars$carb)
+levels(mtcars$carb)
+#To make a column "1" or "0"
+library(dplyr)
+mtcars$carb <- as.numeric(mtcars$carb)
+mtcars<-mutate(mtcars,carb4=1*(carb>4))
+#Other way to make a column "1" or "0"
+ifelse(mtcars$carb==4,1,0)
+#There are more linear models in row 300
 #linear model with single variable
 lm(mpg ~ wt, data=mtcars) # lm(outcome~predictor, dataset) from the datasets package and fit the regression model with mpg as the outcome and weight as the predictor. Give the slope coefficient
 summary(lm(mpg ~ wt, data=mtcars))
+summary(lm(mpg ~ wt, data=mtcars))$coef #to simplify and show only the coeficients
 #The intercept is the expected mean value of Y when all X=0, which means when the reidual has mean = zero
 
 #Predict:
@@ -124,21 +146,64 @@ predict(lm(mpg ~ wt, data=mtcars), newdata, interval="confidence") #predicts low
 predict(lm(mpg ~ wt, data=mtcars), newdata, interval="prediction") #predicts lower and upper value at 95% prediction interval
 
 #Linear model with multiple-variables
-lm(formula = mpg ~ ., data = mtcars)
-summary(lm(formula = mpg ~ ., data = mtcars))
+fit1<-lm(formula = mpg ~ ., data = mtcars)
+#Offset the linear model to show all the variables by subtracting 1: eliminates the intercept
+fit2<-lm(formula = mpg ~ .-1, data = mtcars)
+shapiro.test(fit$residuals) ##Good to check normality, if 95% conf, it means 5% the tale, 0.05. If p-value>0.05 then fails to reject normality
+summary(fit1)$coef
+#Or
+summary(fit2)$coef
+##Analysis for fit1<-lm(formula = mpg ~ ., data = mtcars):
 #based on summary: for every 1% increase in "cyl", we expect a .111144 decrease in mpg, holding all other variables constant
 #based on summary: for every 1% increase in "disp", we expect a .01334 decrease in mpg, holding all other variables constant
 #Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1. The last column show this. In this case, all show "" except one with ".", which means at 0.1 alpha level is the t-test of "wt" significant
 #if we do only:summary(lm(mpg ~ wt, data=mtcars)), the coefficient for "wt" = -5.3445. Thus, decreases more than having all the variables (-3.71) 
-#Hipothesis Testing. To see the new mean is equal to the one from the population
+
+#Want to see Variance Inflation Factors
+fit<-lm(mpg ~ cyl+disp+hp+wt, data = mtcars)
+vif(fit)
+###  These VIF's show, for each regression coefficient, the variance inflation due to including all the others. For instance, the variance in the estimated coefficient
+###of cyl is 8.99 times what it might have been if cyl were not correlated with the other regressors. Since "cyl" and score on an "disp" are
+###likely to be correlated, we might guess that most of the variance inflation for cyl is due to including disp.
+fit<-lm(mpg ~ cyl+hp+wt, data = mtcars) ##Re run the model without disp
+vif(fit)
+###is the easiest way to model mpg as a function of all the regressors except disp
+
+
+#Linear model with multiple-variables but want to know the impact of every change (factor) on a column. E.g. under differnt carburators
+mtcars$carb <- as.factor(mtcars$carb) 
+#Use box plot to evaluate different categories of means under one variable vs the variable of interest
+boxplot(mtcars$mpg~mtcars$cyl) ##Remember is all about looking how close the means from the different categories are in realtion to the outcome  (mpg)
+fit<-lm(mpg~carb,data=mtcars) ##Swirl Multivar examples 2 and Multivar examples 3
+shapiro.test(fit$residuals) ##Good to check normality, if 95% conf, it means 5% the tale, 0.05. If p-value>0.05 then fails to reject normality
+summary(fit)$coef #by default, R puts first carb1 (Intercept)
+#Let's eliminate the intercept:
+nfit<-lm(mpg~carb-1,data=mtcars)
+summary(nfit)$coef ## Estimates become "mean"
+#if you want to change the order and see 1st carb2 as "Intercept" then use function relevel():
+carb3<-relevel(mtcars$carb,"3")
+fit2<-lm(mpg~carb3,mtcars)
+summary(fit2)$coef ##notice carb31 means the relationship between "3" carburators and 1,2,4,5,and 6 carburators producing "mpg"
+#Thus the percentage of "1" carb that affected "3"  when it intercepts is 16.30 + 9.04 = 25.34%    
+#if you want to add another variable on top of carb;
+fit3<-lm(formula=mpg~carb+disp,data=mtcars)
+summary(fit3)$coef
+#if you need to eliminate outliers;
+fitno<-lm(mpg~.,data=mtcars[-17,]) #in this case the outlier is the 1st row on the list.
+plot(fitno, which=1) 
+
+
+#Hipothesis Testing. To see if the new mean is equal to the one from the population
 t.test(mtcars$mpg, alternative="two.sided",mu=20 ,conf.level = 0.95)
   #if p-value < alpha, typically 5% or 0.05 then reject Ho.Otherwise, you accept the two means are equivalent
-t.test(mtcars$mpg, alternative="less",mu=20 ,conf.level = 0.95) #evaluate if Ho<20, in this case accept because p-value>alpha
+t.test(mtcars$mpg, s alternative="less",mu=20 ,conf.level = 0.95) #evaluate if Ho<20, in this case accept because p-value>alpha
 t.test(mtcars$mpg, alternative="greater",mu=20 ,conf.level = 0.95) #evaluate if Ho>20, in this case accept because p-value>alpha
+
 sum(mtcars$cyl>4) ##Counts how many cars are > 4 cyl
-table(mtcars$cyl>4,mtcars$carb) ##Counts how many cars are > 4 cyl and number of cars by type of carb
+table(mtcars$cyl>4,mtcars$carb) ##Counts how many carare > 4 cyl and number of cars by type of carb
 names(mtcars) ## to see name of columns
 names(mtcars)[2:3] ## to see from columns 2 to 3 
+
 varNames <- names(mtcars) ##Shows names of the columns
 varNames[[2]] ## shows the name of 2nd column
 dim(mtcars) ## (rown,columns)
@@ -177,7 +242,7 @@ sum(is.na(mtcars$hp)) ## counts how many "NA" are under column "hp"
 mtcars[mtcars$hp>170,] ##to see certain rows by filtering a column
 mtcars[mtcars$hp>170|mtcars$cyl>6,]  ## to see certain rows by filtering 2 columns "|" means "or", "&" means "and"
   ##Or use Dplyr package, filter(mtcars, hp>170 & cyl>6)
-table(mtcars$hp,mtcars$cyl) ## show two dimential table, row = hp, vs. col = cyl
+table(mtcars$hp,mtcars$cyl) ## show two dimentional table, row = hp, vs. col = cyl
 table(mtcars$cyl %in% c(6)) ## shows number cars with 6 cylinders
 stat2<-subset(mtcars,hp<170)
 
@@ -199,7 +264,7 @@ cbind(cx,cy) ## create a matrix with vectors
 points(cx,cy,col=c("red","orange","purple"),pch=3,cex=2,lwd=2) ##Plot centroids (3)
 subset<-subset(mtcars, cyl== 8, select = c(hp, wt))
 x<-subset$hp ## create coordinate "x" from subset
-y<=subset$wt ## create coordinate "y" from subset
+y<-subset$wt ## create coordinate "y" from subset
 ## Create a function that cal distance between centroids and points from columns (points):
 mdist<-function(x,y,cx,cy){
   distTmp <- matrix(NA,nrow=3,ncol=14) ##14 are the titles or categories under mtcars, cyl== 8, select = c(hp, wt), or 14 different cars 
@@ -221,7 +286,7 @@ tapply(y,newClust,mean) ##Calc mean with the new arrangement for "y", which is t
 newCx<-tapply(x,newClust,mean)
 newCy<-tapply(y,newClust,mean)
 cbind(newCx,newCy)
-points(newCx,newCy,col=cols1,pch=8,cex=2,lwd=2 ## new centraids added to the plot
+points(newCx,newCy,col=cols1,pch=8,cex=2,lwd=2) ## new centraids added to the plot
 mdist(x,y,newCx,newCy) ##shows distances to the new centroids
 calc2<-mdist(x,y,newCx,newCy)
 apply(calc2,2,which.min) ## Shows the points (14) where they belong per centroid (1,2,3) - the new centroid
@@ -236,7 +301,7 @@ kmeans(subset,centers=3) ## Subset is the data. Take the centroid from the outpu
 cx<-c(263.8000,187.1429,150)
 cy<-c(3.899000,4.219857,3.477500)
 cbind(cx,cy)
-points(cx,cy,col=c("red","orange","purple"),pch=3,cex=2,lwd=2)
+
 
 ##To use Singular Value Decomposition of a Matrix to simplify data
 svd(mtcars) especially used when having multiple columns with correlated variables
@@ -254,16 +319,124 @@ stat3<-stat2[1:3,"hp"]## to capture only 3 rows de los hp<170, if multi columns:
 stat3 ## to print only 3 rows hp<170
 dim(stat2) ## shows total rows and columns, but rows are interesting to new how many records
 ##if you want to simplify then >attach(mtcars), that allows you write "mpg instead of mtcars$mpg
-mean(mtcars$mpg[mtcars$cyl==8],na.rm=TRUE) ##eliminates NA's
+
+max(mtcars$mpg)mean(mtcars$mpg[mtcars$cyl==8],na.rm=TRUE) ##eliminates NA's
 mean(mtcars$mpg)
 mean(mtcars$mpg>22) ##to calculate the mean after filtering values
 median(mtcars$mpg)
-max(mtcars$mpg)
 min(mtcars$mpg)
 sd(mtcars$mpg)
 range(mtcars$mpg)
 rowMeans(mtcars[,2:3])
 quantile(mtcars$mpg, c(.025,.975)) ## alpha=5%
+cor(mtcars$disp,mtcars$qsec) ##correlation between variables
+
+#linear model with single variable
+lm(mpg ~ wt, data=mtcars) # lm(outcome~predictor, dataset) from the datasets package and fit the regression model with mpg as the outcome and weight as the predictor. Give the slope coefficient
+shapiro.test(fit$residuals) ##Good to check normality, if 95% conf, it means 5% the tale, 0.05. If p-value>0.05 then fails to reject normality
+summary(lm(mpg ~ wt, data=mtcars))
+#The intercept is the expected mean value of Y when all X=0, which means when the reidual has mean = zero
+
+#Predict:
+fit<-lm(mpg ~ wt, data=mtcars)
+newdata <- data.frame(wt=mean(mtcars$wt))
+# Use "confidence" intervals to tell you about how well you have determined the mean
+predict(lm(mpg ~ wt, data=mtcars), newdata, interval="confidence") #predicts lower and upper value at 95% confidence interval
+# Use "prediction" interval to tell you where you can expect to see the next data point sampled
+predict(lm(mpg ~ wt, data=mtcars), newdata, interval="prediction") #predicts lower and upper value at 95% prediction interval
+#Use box plot to evaluate different categories of means under one variable vs the variable of interest
+boxplot(mtcars$mpg~mtcars$cyl) ##Remember is all about looking how close the means from the different categories are in realtion to predictor
+#Linear model with multiple-variables
+lm(formula = mpg ~ ., data = mtcars)
+summary(lm(formula = mpg ~ ., data = mtcars))
+#based on summary: for every 1% increase in "cyl", we expect a .111144 decrease in mpg, holding all other variables constant
+#based on summary: for every 1% increase in "disp", we expect a .01334 decrease in mpg, holding all other variables constant
+#Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1. The last column show this. In this case, all show "" except one with ".", which means at 0.1 alpha level is the t-test of "wt" significant
+#if we do only:summary(lm(mpg ~ wt, data=mtcars)), the coefficient for "wt" = -5.3445. Thus, decreases more than having all the variables (-3.71) 
+
+#Formal Prediction:
+library(lattice)
+library(ggplot2)
+library(caret)
+library(rpart)
+trainIndex = createDataPartition(y=mtcars$mpg,p=0.75,list=FALSE)
+training<-mtcars[trainIndex,]
+testing<-mtcars[-trainIndex,]
+dim(training)
+featurePlot(x=training[,c("disp","hp","drat","wt")],y=training$mpg,plot="pairs")
+#1st row represents each of the correlations between disp,hp,drat,wt and "y (mpg)"
+#to see correlations: 4th row & 1st column represent correlation between hp and disp.
+#to see correlations: 3rd row & 2nd column represent correlation between drat and hp. 
+
+##Shows an error: Option 1
+modelFit <- train(mpg ~ .,method="rpart",data=training)
+
+##Shows an error: Option 2
+##modelFit <- train(mpg ~ .,method="glm",reProcess="pca",data=training,trControl=trainControl(preProcOptions=list(thresh=0.75)))
+
+##This is good...Option 3
+modelFit1 <- train(mpg ~ .,method="glm",data=training)
+print(modelFit1$finalModel)
+Instead of using the fuction( due to an error): confusionMatrix(testing$mpg,predict(modelFit,testing)), I used the table:
+table(pred,testing$mpg)  
+
+##Better Example for train and predict
+#Formal Prediction:
+library(lattice)
+library(ggplot2)
+library(caret)
+library(rpart)
+library(MASS)
+library(klaR)
+library(datasets)
+data(iris)
+trainIndex = createDataPartition(y=iris$Species,p=0.70,list=FALSE)
+training<-iris[trainIndex,]
+testing<-iris[-trainIndex,]
+dim(training)
+featurePlot(x=training[,c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width")],y=training$Species,plot="pairs")
+#1st row represents each of the correlations between disp,hp,drat,wt and "y (mpg)"
+#to see correlations: 4th row & 1st column represent correlation between hp and disp.
+#to see correlations: 3rd row & 2nd column represent correlation between drat and hp. 
+modelFit1 <- train(Species ~ .,method="lda",data=training)
+modelFit2 <- train(Species ~ .,method="nb",data=training)
+modelFit3 <- train(Species ~ .,method="rpart",data=training)
+confusionMatrix(testing$Species,predict(modelFit1,testing)) ##Look for the accuracy. how close the predicted values are
+confusionMatrix(testing$Species,predict(modelFit2,testing)) ##Look for the accuracy. how close the predicted values are
+confusionMatrix(testing$Species,predict(modelFit3,testing)) ##Look for the accuracy. how close the predicted values are
+print(modelFit1$finalModel)
+print(modelFit2$finalModel)
+print(modelFit3$finalModel)
+                      When using modelfit3 method = rpart use:
+                      library(rattle)
+                      library(rpart.plot)
+                      fancyRpartPlot(modelFit3$finalModel) ##prediction is: setosa,versicolor,setosa,impossible to predict 
+plda<-predict(modelFit1,testing)
+pnb<-predict(modelFit2,testing)
+table(plda,pnb)
+equalPrediction=(plda==pnb)
+qplot(Petal.Width, Sepal.Width,colour=equalPrediction,data=testing)
+
+#Hipothesis Testing. To see if the new mean is equal to the one from the population
+t.test(mtcars$mpg, alternative="two.sided",mu=20 ,conf.level = 0.95)
+#if p-value < alpha, typically 5% or 0.05 then reject Ho.Otherwise, you accept the two means are equivalent
+t.test(mtcars$mpg, alternative="less",mu=20 ,conf.level = 0.95) #evaluate if Ho<20, in this case accept because p-value>alpha
+t.test(mtcars$mpg, alternative="greater",mu=20 ,conf.level = 0.95) #evaluate if Ho>20, in this case accept because p-value>alpha
+
+#Residuals, Fitted, Normal Q-Q, etc
+data(mtcars)
+par(mfrow=c(2,2))
+fit<-lm(mpg~.,data=mtcars)
+
+##For needed or unneeded variables
+library(car)
+vif(fit)
+##Std error for "Cyl" = 16.07 times if "it were orthogonal to all the other regressors". "Cyl" its very high so it should be included 
+anova(fit)
+plot(fit, which=1)
+#if you need to eliminate outliers;
+fitno<-lm(mpg~.,data=mtcars[-17,]) #in this case the outlier is the 1st row on the list.
+plot(fitno, which=1)
 
 ##Statistics
 
@@ -469,9 +642,16 @@ tapply(mtcars$hp, mtcars$cyl, mean) ## it will show average hp per group of cyli
 str(stat) ## new metrics based on "split" (cyl) over all the other variables
 plot(x=mtcars$mpg, y=mtcars$hp)
 mtcars[,2]<-as.numeric(mtcars[,2]) ## column 2
-hist(mtcars[,2]) ##histogram stat all rown, column 2
+hist(mtcars[,2]) ##histogram stat all rows, column 2
 }
+# if you see the histogram (hist) is skew, try the log version to see if it's more uniform
+hist((mtcars$mpg), breaks=20)
+hist(log(mtcars$mpg+1), breaks=20)  
+
+
 
 mns = NULL
 for (i in 1 : 1000) mns = c(mns, mean(runif(40)))
 hist(mns)
+
+
