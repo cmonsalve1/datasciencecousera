@@ -1,7 +1,0 @@
----
-title: "DiabitesPredictor"
-output: html_document
----
-
-#This is an Application that allows you to predict based on the levels glucose, the diabetes. Only enter a value between 50 and 200 and press "Submit".
-
